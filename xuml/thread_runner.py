@@ -1,10 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor, wait, Future
 from queue import Queue
-from .state import StateMachine, ManagedState, Machines
 from os import cpu_count
 
+from .queues import Queues
+from .state import StateMachine
+from .managed_state import ManagedState
+from .machines import Machines
 
-class ThreadSafeQueues(object):
+
+class ThreadSafeQueues(Queues):
     '''
         A Queues objet provides a tuple of event queues for a given state machine:
         one external and one internal.
@@ -58,5 +62,5 @@ class ThreadMachines(Machines):
 class ThreadManagedState(ManagedState):
     def __init__(self, name='', max_workers=cpu_count()):
         self.name = name
-        self.pool = ThreadMachines(max_workers)
+        self.machines = ThreadMachines(max_workers)
         self.queues_type = ThreadSafeQueues

@@ -1,5 +1,6 @@
 from unittest import TestCase
-from xuml.state import StateMachine, ManagedState
+from xuml.state import StateMachine
+from xuml.synchronous.managed_state import SynchronousManagedState
 
 class TestState(TestCase):
 
@@ -26,8 +27,8 @@ class TestState(TestCase):
 
 
         expected_time = [('bar', 'foo'), ('foo', 'bar'), ('bar', 'foo')]
-        with ManagedState():
-            a = A()
+        with SynchronousManagedState() as global_state:
+            a = global_state.new(A)
             a.send('pong')
             a.send('ping')
             a.send('pong')

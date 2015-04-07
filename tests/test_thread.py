@@ -27,8 +27,8 @@ class TestState(TestCase):
 
 
         expected_time = [('bar', 'foo'), ('foo', 'bar'), ('bar', 'foo')]
-        with ThreadManagedState():
-            a = A()
+        with ThreadManagedState() as global_state:
+            a = global_state.new(A)
             a.send('pong')
             a.send('ping')
             a.send('pong')
@@ -50,7 +50,7 @@ class TestState(TestCase):
                 self.b = None
                 self.c = None
                 self.counter = 0
-                self.limit = 10000
+                self.limit = 1000
 
             def init(self, b, c):
                 self.b = b
@@ -90,12 +90,12 @@ class TestState(TestCase):
             def switch_on(self):
                 self.a.send('switch_on')
 
-        with ThreadManagedState():
-            a = A()
-            b = B(a)
-            c = C(a)
+        with ThreadManagedState() as global_state:
+            a = global_state.new(A)
+            b = global_state.new(B, a)
+            c = global_state.new(C, a)
             a.init(b,c)
 
             a.send('switch_on')
 
-        test.assertEqual(a.counter, 10000)
+        test.assertEqual(a.counter, a.limit)
