@@ -1,15 +1,33 @@
 from threading import Thread, Event
+from copy import copy
 
-class MachinePool(object):
-    def __init__(self, thread_pool):
+from xuml.synchronous.machines import SynchronousMachines
+from xuml.state import StateMachine
+from xuml.synchronous.managed_state import SynchronousManagedState
+from xuml.local_proxy import LocalProxy
+from xuml.load_balancer import LoadBalancer
+
+class MachinePool(SynchronousMachines):
+    def __init__(self, thread_pool=None):
         self.thread_pool = thread_pool
+        self.load_balancer = LoadBalancer(self)
+        self.add(self.load_balancer)
         self.thread = Thread(name='MachinePool', target = self.run)
         self.close_event = Event()
-        self.count = 0
-        self.thread.start()
 
     def run(self):
         while not self.close_event.is_set():
-            self.count+=1
-            self.close_event.wait(5)
+            self.process_all_events()
+            self.close_event.wait()
 
+    def new(self, klass, *args, **kwargs):
+        return LocalProxy(self.load_balancer, klass, *args, **kwargs)
+
+    def __enter__(self):
+        StateMachine.machines = self
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb):
+        self.close_event.set()
+        self.thread.join()

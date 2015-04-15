@@ -1,10 +1,11 @@
-from .state_machine_interface import StateMachineInterface
-from .machines import Machines
-from .exceptions import InvalidContext, InvalidEvent, NoTransition
+from xuml.state_machine_interface import StateMachineInterface
+from xuml.machines import Machines
+from xuml.exceptions import InvalidContext, InvalidEvent, NoTransition
+from xuml.synchronous.queues import SynchronousQueues
 
 class StateMachine(StateMachineInterface):
     machines = None
-    queues_type = None
+    queues_type = SynchronousQueues
 
     def __init__(self, initial_state=None):
         self._validate_transitions()
@@ -34,6 +35,7 @@ class StateMachine(StateMachineInterface):
         Note that 'set_state' is called right before the call to the new_state method is made
         '''
         pass
+
     def send(self, event_name, *args, **kwargs):
         '''
         send is used for communications between state machines.

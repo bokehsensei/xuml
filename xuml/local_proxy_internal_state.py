@@ -1,4 +1,4 @@
-from .state import StateMachine, StateMachineInterface
+from .state import StateMachine
 from multiprocessing import Queue
 
 class LocalProxyInternalState(StateMachine):
@@ -31,17 +31,3 @@ class LocalProxyInternalState(StateMachine):
         self.proxy.remote_proxy.send(self.proxy.locals_events)
         del self.proxy.local_events
         self.proxy.send = self.proxy.remote_proxy.send
-
-class LocalProxy(StateMachineInterface):
-    def __init__(self, load_balancer, klass, *args, **kwargs):
-        self.event_transitions = klass.event_transitions
-        self.load_balancer = load_balancer
-        self.local_events = []
-        self.remote_proxy = None
-        self.internal = ProxyInternalState(self, load_balancer)
-        self.internal.send('create', klass, *args, **kwargs)
-
-    def enqueue_local_events(self, event, *args, **kwargs):
-        self.local_events.append((event, args, kwargs))
-
-    send = enqueue_local_events

@@ -1,3 +1,4 @@
+from functools import singledispatch
 
 class StateMachineInterface(object):
     '''
@@ -35,6 +36,7 @@ class StateMachineInterface(object):
                     getattr(self, old_state)
                 getattr(self, new_state)
 
+    @singledispatch
     def send(self, event_name, *args, **kwargs):
         '''
         send is used for communications between state machines.
@@ -47,3 +49,13 @@ class StateMachineInterface(object):
         '''
         if event_name not in self.event_transitions.keys():
             raise ValueError('Unknown event "{}" sent to {}'.format(event_name, str(self)))
+
+    @send.register(list)
+    def _send(self, events):
+        '''
+        Overload of 'send' that takes a list of events instead of a single event.
+        Each event is a tuple (event_name, args, kwargs)
+        '''
+        for event in events:
+            if event[0] not in self.event_transitions.keys():
+                raise ValueError('Unknown event "{}" sent to {}'.format(event[0], str(self)))
