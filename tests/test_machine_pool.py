@@ -34,5 +34,6 @@ class TestMachinePool(TestCase):
             self.assertEqual(threads[1].name, 'MachinePool')
             self.assertEqual(2, active_count())
             machine = mp.new(self.Foo)
+            self.assertEqual(2, len(mp))
             machine.send('ping')
         self.assertEqual(1, active_count())
