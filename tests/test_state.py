@@ -25,7 +25,6 @@ class TestState(TestCase):
             def bar(self):
                 pass
 
-
         expected_time = [('bar', 'foo'), ('foo', 'bar'), ('bar', 'foo')]
         with SynchronousManagedState() as global_state:
             a = global_state.new(A)

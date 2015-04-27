@@ -2,4 +2,7 @@ venv/
 *.pyc
 *.swp
 *.swo
+*.jpg
+*.svg
+*.dg
 app.db

@@ -19,6 +19,7 @@ class MachinePool(SynchronousMachines):
         while not self.close_event.is_set():
             self.process_all_events()
             self.close_event.wait()
+        self.process_all_events() # bug!
 
     def new(self, klass, *args, **kwargs):
         return LocalProxy(self.load_balancer, klass, *args, **kwargs)
@@ -29,5 +30,8 @@ class MachinePool(SynchronousMachines):
         return self
 
     def __exit__(self, exc_type, exc, exc_tb):
+        print('about to set close_event')
         self.close_event.set()
+        print('close_event is set')
         self.thread.join()
+        print('thread is joined')

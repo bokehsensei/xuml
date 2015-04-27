@@ -48,14 +48,10 @@ class StateMachine(StateMachineInterface):
         If send is called outside a with statement with a ManagedState context, it will raise an InvalidContext exception.
         '''
         super().send(event_name, *args, **kwargs)
-        if isinstance(self.machines, Machines):
-            self.machines.add(self)
-        else:
-            raise InvalidContext()
         self.queues.add_external_event((event_name, args, kwargs))
 
     def send_internal(self, event_name, *args, **kwargs):
-        if event_name not in event_transitions.keys():
+        if event_name not in self.event_transitions.keys():
             raise InvalidEvent(event_name, self)
         self.queues.add_internal_event( (event_name, args, kwargs) )
 
@@ -68,3 +64,4 @@ class StateMachine(StateMachineInterface):
                 raise NoTransition(self.current_state, event)
             self.current_state = state_name
             getattr(self, state_name)(*args, **kwargs)
+
