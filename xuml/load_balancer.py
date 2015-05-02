@@ -26,10 +26,9 @@ class LoadBalancer(StateMachine):
         },
     }
 
-    def __init__(self, machines, thread_pool_load_balancer=None, capacity=None):
-        self.machines = machines
+    def __init__(self, machine_pool, thread_pool_load_balancer=None, capacity=None):
+        self.machine_pool = machine_pool
         self.capacity = capacity
-        self.process_proxies = dict()
         self.thread_pool_load_balancer = thread_pool_load_balancer
         super().__init__('under_capacity')
         self.under_capacity()
@@ -38,15 +37,11 @@ class LoadBalancer(StateMachine):
         if self.thread_pool_load_balancer:
             self.thread_pool_load_balancer.send('available', self)
 
-    def allocate(self, client, klass, *args, **kwargs):
+    def allocate(self, klass, *args, **kwargs):
         machine = klass(*args, **kwargs)
-        self.machines.add(machine)
-        proxy = ProcessProxy(machine)
-        self.process_proxies[id(machine)] = proxy
+        self.machine_pool[machine._id] = machine
 
-        client.send('allocated', proxy)
-
-        if self.capacity and (self.capacity == len(self.machines)):
+        if self.capacity and (self.capacity == len(self.machine_pool)):
             self.send_internal('max_reached')
         else:
             self.send_internal('spare_capacity')
@@ -58,7 +53,7 @@ class LoadBalancer(StateMachine):
         client.send('error')
 
     def deleting(self, machine):
-        self.machines.remove(machines)
+        self.machine_pool.remove(machine)
 
     def notify_over(self):
         self.thread_pool_load_balancer.send('machine_pool_at_max_capacity', self)

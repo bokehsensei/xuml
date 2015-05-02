@@ -1,14 +1,19 @@
 from unittest import TestCase, skip
 
 from xuml.state import StateMachine
-from xuml.load_balancer import LoadBalancer
-from xuml.synchronous.machines import SynchronousMachines
-from xuml.local_proxy import LocalProxy
+from xuml.machine_pool import MachinePool
 
 class A(StateMachine):
     event_transitions = {
-        'on':   { 'Off':    'On' },
-        'off':  { 'On':     'Off' }
+        'create':   {
+            None:   'Off'
+        },
+        'on':   {
+            'Off':    'On'
+        },
+        'off':  {
+            'On':     'Off'
+        }
     }
 
     def __init__(self):
@@ -21,14 +26,13 @@ class A(StateMachine):
 class TestLoadBalancer(TestCase):
 
     def test_load_balancer(self):
-        machines = SynchronousMachines()
-        lb = LoadBalancer(machines)
+        machine_pool = MachinePool()
+        lb = machine_pool.load_balancer
+        self.assertEqual(len(machine_pool.keys()), 1)
         self.assertEqual(lb.current_state, 'under_capacity')
-
-        client = LocalProxy(lb, A)
-
-        client.internal.run()
-        self.assertEqual(client.internal.current_state, 'allocating')
+        lb.send('new', A)
+        lb.send('new', A)
+        lb.send('new', A)
         lb.run()
         self.assertEqual(lb.current_state, 'under_capacity')
-        import pdb; pdb.set_trace()
+        self.assertEqual(len(machine_pool.keys()), 4)

@@ -15,8 +15,9 @@ class ThreadPool(StateMachine):
 
     def __init__(self):
         self.pipe, pool_pipe = Pipe()
-        self.machine_pools = []
+        self.machine_pools = dict()
         self.process = Process(target=self.run, args=(pool_pipe,))
+        self._id = id(self)
         self.process.start()
         print('Started {}.'.format(self.process.name))
 
@@ -24,8 +25,9 @@ class ThreadPool(StateMachine):
         pass
 
     def run(self, pipe):
-        self.machine_pools.append(MachinePool(self))
-        anything = pipe.recv()
+        one_pool = MachinePool(self)
+        self.machine_pools[one_pool._id] = one_pool
+        _ = pipe.recv()
         for pool in self.machine_pools:
             pool.close_event.set()
             pool.thread.join()

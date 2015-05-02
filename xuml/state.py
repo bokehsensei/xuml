@@ -1,7 +1,10 @@
+from collections import namedtuple
+
 from xuml.state_machine_interface import StateMachineInterface
 from xuml.machines import Machines
 from xuml.exceptions import InvalidContext, InvalidEvent, NoTransition
 from xuml.synchronous.queues import SynchronousQueues
+from xuml.allocated_proxy import Proxy
 
 class StateMachine(StateMachineInterface):
     machines = None
@@ -13,6 +16,8 @@ class StateMachine(StateMachineInterface):
         if initial_state:
             getattr(self, initial_state)
         self._current_state = initial_state
+        Id = namedtuple('Id', ['machine', 'machine_pool_id'])
+        self._id = Id(id(self), getattr(self.machines, '_id', None))
 
     @property
     def current_state(self):
@@ -64,4 +69,7 @@ class StateMachine(StateMachineInterface):
                 raise NoTransition(self.current_state, event)
             self.current_state = state_name
             getattr(self, state_name)(*args, **kwargs)
+
+    def proxy(self, destination_id):
+        return Proxy(self._id, destination_id, self.machines)
 

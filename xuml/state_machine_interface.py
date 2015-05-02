@@ -1,5 +1,7 @@
 from functools import singledispatch
 
+from xuml.event import Event
+
 class StateMachineInterface(object):
     '''
     This abstract base class describes how any client code, including possibly another state machine,
@@ -59,3 +61,9 @@ class StateMachineInterface(object):
         for event in events:
             if event[0] not in self.event_transitions.keys():
                 raise ValueError('Unknown event "{}" sent to {}'.format(event[0], str(self)))
+            self.send(event)
+
+    @send.register(Event)
+    def _send(self, event):
+        if event.event_name not in self.event_transitions.keys():
+            raise ValueError('Unknown event "{}" sent to {}'.format(event.event_name, str(self)))
