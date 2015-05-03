@@ -1,4 +1,3 @@
-from xuml.process_proxy import ProcessProxy
 from xuml.state import StateMachine
 
 class LoadBalancer(StateMachine):

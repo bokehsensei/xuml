@@ -19,11 +19,9 @@ class TestState(TestCase):
             def set_state(self, old_state, new_state):
                 self.time.append((old_state, new_state))
 
-            def foo(self):
-                pass
+            def foo(self): pass
 
-            def bar(self):
-                pass
+            def bar(self): pass
 
         expected_time = [('bar', 'foo'), ('foo', 'bar'), ('bar', 'foo')]
         with SynchronousManagedState() as global_state:

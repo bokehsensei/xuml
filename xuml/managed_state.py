@@ -1,11 +1,11 @@
-from contextlib import ContextDecorator
 
 from .state_machine_interface import StateMachineInterface
 from .state import StateMachine
 from .queues import Queues
 from .machines import Machines
+from xuml.exceptions import InvalidContext
 
-class ManagedState(ContextDecorator):
+class ManagedState(object):
     def __init__(self, name=''):
         self.name = name
         self.machines = None
@@ -14,8 +14,12 @@ class ManagedState(ContextDecorator):
     def new(self, state_machine_class, *args, **kwargs):
         if not issubclass(state_machine_class, StateMachineInterface):
             raise StateMachineTypeError(state_machine_class)
+        if not self.machines:
+            raise InvalidContext()
 
-        return state_machine_class(*args, **kwargs)
+        new_machine = state_machine_class(*args, **kwargs)
+        self.machines[new_machine._id] = new_machine
+        return new_machine
 
     def __enter__(self):
         if not isinstance(self.machines, Machines):

@@ -4,7 +4,7 @@ from xuml.state_machine_interface import StateMachineInterface
 from xuml.machines import Machines
 from xuml.exceptions import InvalidContext, InvalidEvent, NoTransition
 from xuml.synchronous.queues import SynchronousQueues
-from xuml.allocated_proxy import Proxy
+from xuml.proxy import Proxy
 
 class StateMachine(StateMachineInterface):
     machines = None

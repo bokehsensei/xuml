@@ -3,7 +3,7 @@ from threading import active_count, enumerate, Event
 
 from xuml.machine_pool import MachinePool
 from xuml.state import StateMachine
-from xuml.allocated_proxy import Proxy
+from xuml.proxy import Proxy
 
 class Z(StateMachine):
     event_transitions = {

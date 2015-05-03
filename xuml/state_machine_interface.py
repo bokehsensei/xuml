@@ -28,7 +28,7 @@ class StateMachineInterface(object):
         }
 
     '''
-    event_transitions = None
+    event_transitions = dict()
 
     def _validate_transitions(self):
         for event, transition in self.event_transitions.items():
@@ -38,7 +38,6 @@ class StateMachineInterface(object):
                     getattr(self, old_state)
                 getattr(self, new_state)
 
-    @singledispatch
     def send(self, event_name, *args, **kwargs):
         '''
         send is used for communications between state machines.
@@ -52,18 +51,13 @@ class StateMachineInterface(object):
         if event_name not in self.event_transitions.keys():
             raise ValueError('Unknown event "{}" sent to {}'.format(event_name, str(self)))
 
-    @send.register(list)
-    def _send(self, events):
+    def send_many(self, events):
         '''
-        Overload of 'send' that takes a list of events instead of a single event.
+        Equivalent of 'send' that takes a list of events instead of a single event.
         Each event is a tuple (event_name, args, kwargs)
         '''
         for event in events:
-            if event[0] not in self.event_transitions.keys():
-                raise ValueError('Unknown event "{}" sent to {}'.format(event[0], str(self)))
-            self.send(event)
+            self.send(*event)
 
-    @send.register(Event)
-    def _send(self, event):
-        if event.event_name not in self.event_transitions.keys():
-            raise ValueError('Unknown event "{}" sent to {}'.format(event.event_name, str(self)))
+    def send_event(self, event):
+        self.send(event.event_name, *event.args, **event.kwargs)
