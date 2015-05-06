@@ -14,11 +14,12 @@ class ManagedState(object):
     def new(self, state_machine_class, *args, **kwargs):
         if not issubclass(state_machine_class, StateMachineInterface):
             raise StateMachineTypeError(state_machine_class)
-        if not self.machines:
+        if self.machines == None:
             raise InvalidContext()
 
+        kwargs['pool'] = self.machines
         new_machine = state_machine_class(*args, **kwargs)
-        self.machines[new_machine._id] = new_machine
+        self.machines[new_machine.id] = new_machine
         return new_machine
 
     def __enter__(self):
@@ -27,7 +28,6 @@ class ManagedState(object):
         if not issubclass(self.queues_type, Queues):
             raise QueuesTypeError(self.queues_type)
 
-        StateMachine.machines = self.machines
         StateMachine.queues_type = self.queues_type
         return self
 

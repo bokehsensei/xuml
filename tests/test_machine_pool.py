@@ -1,8 +1,9 @@
 from unittest import TestCase, skip
-from threading import active_count, enumerate
+from threading import active_count
 import threading
 
 from xuml.machine_pool import MachinePool
+from xuml.thread_pool import ThreadPool
 from xuml.state import StateMachine
 from xuml.event import Event
 
@@ -11,8 +12,8 @@ class Z(StateMachine):
         'press': { 'buzz': 'buzz' }
     }
 
-    def __init__(self):
-        super().__init__('buzz')
+    def __init__(self, pool=None):
+        super().__init__(pool, 'buzz')
         self.timeline = []
 
     def buzz(self):
@@ -27,9 +28,9 @@ class TestMachinePool(TestCase):
                 'pong': { 'ping': 'pong' }
             }
 
-            def __init__(self):
+            def __init__(self, pool=None):
                 self.time = []
-                super().__init__('pong')
+                super().__init__(pool, 'pong')
 
             def set_state(self, old, new):
                 self.time += (old, new)
@@ -40,28 +41,28 @@ class TestMachinePool(TestCase):
         self.Foo = Foo
 
     def test_queue(self):
-        m = MachinePool()
-        m._enter() # simulates entering the context, without starting the thread
-        self.assertEqual(len(m), 1)
-        create_a_Z_object = Event(None, m.load_balancer._id, 'new', [Z], {})
+        process = ThreadPool(1)
+        self.assertTrue(process.machine_pools)
+        _, m = next(enumerate(process.machine_pools.values()))
+        self.assertEqual(len(m), 2)
+        create_a_Z_object = Event(None, m.load_balancer.id, 'new', [Z], {})
         m.queue.put(create_a_Z_object)
         m.queue.put([create_a_Z_object, create_a_Z_object, create_a_Z_object])
         m.new(Z)
         m.flush_all_events()
-        self.assertEqual(len(m), 6)
+        self.assertEqual(len(m), 7)
 
     def test_new(self):
         m = MachinePool()
-        m._enter() # simulates entering the context, without starting the thread
         m.new(Z)
         m.flush_all_events()
-        self.assertEqual(len(m), 2)
+        self.assertEqual(len(m), 1)
 
     def test_basic(self):
         m = MachinePool()
         m.__enter__()
         self.assertEqual(2, active_count())
-        threads = enumerate()
+        threads = threading.enumerate()
         self.assertTrue(threads[1].name.startswith('MachinePool'))
         m._exit()
         m.thread.join()

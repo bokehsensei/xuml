@@ -12,9 +12,9 @@ class TestState(TestCase):
                 'pong': { 'bar': 'foo'}
             }
             
-            def __init__(self):
+            def __init__(self, pool=None):
+                super().__init__(pool, 'bar')
                 self.time = []
-                super().__init__('bar')
 
             def set_state(self, old_state, new_state):
                 self.time.append((old_state, new_state))
